@@ -1,13 +1,13 @@
-package by.anpoliakov.tiffbankeffectivemobile;
+package by.anpoliakov.tiffbank;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TiffbankEffectiveMobileApplication {
+public class Application {
 
 	public static void main(String[] args) {
-		SpringApplication.run(TiffbankEffectiveMobileApplication.class, args);
+		SpringApplication.run(Application.class, args);
 	}
 
 }
