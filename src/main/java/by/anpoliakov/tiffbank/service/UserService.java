@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepo;
 
-    public boolean existsByLogin(@NonNull String login){
+    public boolean existsByLogin(@NonNull String login) {
         return userRepo.existsByLogin(login);
     }
 }
