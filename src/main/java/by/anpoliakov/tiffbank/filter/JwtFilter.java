@@ -3,6 +3,7 @@ package by.anpoliakov.tiffbank.filter;
 import by.anpoliakov.tiffbank.util.JwtProvider;
 import by.anpoliakov.tiffbank.util.JwtUtils;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -36,6 +37,7 @@ public class JwtFilter extends GenericFilterBean {
             jwtInfoToken.setAuthenticated(true);
             SecurityContextHolder.getContext().setAuthentication(jwtInfoToken);
         }
+
         fc.doFilter(request, response);
     }
 

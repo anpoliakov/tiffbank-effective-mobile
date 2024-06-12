@@ -14,4 +14,5 @@ public interface PhoneNumberRepository extends JpaRepository<PhoneNumber, BigInt
     long countByUserLogin(String login);
     boolean existsByUserLoginAndId(String login, BigInteger id);
     Optional<PhoneNumber> findById(BigInteger id);
+    Optional<PhoneNumber> findByPhoneNumber(String phoneNumber);
 }

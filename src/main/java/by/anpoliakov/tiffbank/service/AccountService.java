@@ -1,6 +1,6 @@
 package by.anpoliakov.tiffbank.service;
 
-import by.anpoliakov.tiffbank.domain.dto.TransferRequest;
+import by.anpoliakov.tiffbank.domain.dto.TransferDto;
 import by.anpoliakov.tiffbank.domain.entity.Account;
 import by.anpoliakov.tiffbank.repository.AccountRepository;
 import by.anpoliakov.tiffbank.util.exception.TransferException;
@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 
 @Service
 @Transactional(readOnly = true)
@@ -19,26 +18,29 @@ public class AccountService {
     private final AccountRepository accountRepo;
 
     @Transactional
-    public void transferMoney(TransferRequest transferRequest) {
-        String userLoginFrom = authService.getAuthInfo().getUsername();
-        BigInteger userIdTo = transferRequest.getPayeeId();
-        BigDecimal transferAmount = transferRequest.getTransferAmount();
-
-        Account accountFrom = accountRepo.findByUserLogin(userLoginFrom).get();
-        Account accountTo = accountRepo.findByUserId(userIdTo)
+    public void transferFunds(TransferDto transferDto) {
+        Account debitAccount = accountRepo.findByUserLogin(authService.getAuthInfo().getUsername())
+                .orElseThrow(() -> new TransferException("Invalid user for debiting money"));
+        Account creditAccount = accountRepo.findByUserId(transferDto.getCreditUserId())
                 .orElseThrow(() -> new TransferException("The recipient of the money transfer was not found!"));
+        BigDecimal transferAmount = transferDto.getTransferAmount();
 
-        BigDecimal resultSubtract = subtractAccounts(accountFrom.getBalance(), transferAmount);
-        accountFrom.setBalance(resultSubtract);
-        accountTo.setBalance(accountTo.getBalance().add(transferAmount));
+        BigDecimal finalBalanceDebitAccount = checkBalanceAfterDebit(debitAccount.getBalance(), transferAmount);
+        debitAccount.setBalance(finalBalanceDebitAccount);
+        creditAccount.setBalance(creditAccount.getBalance().add(transferAmount));
     }
 
-    private BigDecimal subtractAccounts(BigDecimal account, BigDecimal transferAmount) {
-        BigDecimal difference = account.subtract(transferAmount);
-        if (difference.compareTo(BigDecimal.ZERO) < 0) {
+    @Transactional
+    public void save(Account account){
+        accountRepo.save(account);
+    }
+
+    private BigDecimal checkBalanceAfterDebit(BigDecimal debitAccount, BigDecimal transferAmount) {
+        BigDecimal finalBalance = debitAccount.subtract(transferAmount);
+        if (finalBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new TransferException("For the transfer, you don't have enough money!");
         }
 
-        return difference;
+        return finalBalance;
     }
 }

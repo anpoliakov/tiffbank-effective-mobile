@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
+@ToString
 public class User {
     @Id
     @Column(name = "user_id")
@@ -39,10 +42,14 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Account account;
 
-    public User(String login, String password, String fullName, LocalDate birthday) {
+    @Column(name = "initial_deposit")
+    private BigDecimal initialDeposit;
+
+    public User(String login, String password, String fullName, LocalDate birthday, BigDecimal initialDeposit) {
         this.login = login;
         this.password = password;
         this.fullName = fullName;
         this.birthday = birthday;
+        this.initialDeposit = initialDeposit;
     }
 }
