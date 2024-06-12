@@ -4,6 +4,7 @@ import by.anpoliakov.tiffbank.util.validation.UniqueEmail;
 import by.anpoliakov.tiffbank.util.validation.UniqueLogin;
 import by.anpoliakov.tiffbank.util.validation.UniquePhoneNumber;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +16,8 @@ import java.time.LocalDate;
 @Setter
 @Getter
 @ToString
-public class UserAccountRequest {
+@Schema(description = "Object for transferring user data to the server side ")
+public class UserDetailsRequestDto {
     @NotEmpty(message = "login should not be empty")
     @Size(min = 2, max = 50, message = "login should be between 2 and 50 characters")
     @UniqueLogin
@@ -44,5 +46,6 @@ public class UserAccountRequest {
     private String email;
 
     @Positive(message = "The starting account balance should be > 1!")
+    @Min(1)
     private BigDecimal balance;
 }

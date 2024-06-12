@@ -1,20 +1,21 @@
 package by.anpoliakov.tiffbank.service;
 
 import by.anpoliakov.tiffbank.filter.JwtAuthentication;
-import by.anpoliakov.tiffbank.domain.dto.JwtRequest;
-import by.anpoliakov.tiffbank.domain.dto.JwtResponse;
+import by.anpoliakov.tiffbank.domain.dto.JwtRequestDto;
+import by.anpoliakov.tiffbank.domain.dto.JwtResponseDto;
 import by.anpoliakov.tiffbank.domain.entity.RefreshToken;
 import by.anpoliakov.tiffbank.domain.entity.User;
 import by.anpoliakov.tiffbank.repository.RefreshTokenRepository;
 import by.anpoliakov.tiffbank.repository.UserRepository;
 import by.anpoliakov.tiffbank.util.JwtProvider;
-import by.anpoliakov.tiffbank.util.exception.UserAccountException;
+import by.anpoliakov.tiffbank.util.exception.AuthException;
 import by.anpoliakov.tiffbank.util.exception.UserNotFoundException;
 import io.jsonwebtoken.Claims;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -26,13 +27,14 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final UserRepository userRepo;
     private final RefreshTokenRepository tokenRepo;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public JwtResponse login(@Valid JwtRequest authRequest) {
+    public JwtResponseDto login(@Valid JwtRequestDto authRequest) {
         final User user = userRepo.findByLogin(authRequest.getLogin())
                 .orElseThrow(() -> new UserNotFoundException("User is not found!"));
 
-        if (user.getPassword().equals(authRequest.getPassword())) {
+        if (passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
             final String accessToken = jwtProvider.generateAccessToken(user);
             final String refreshToken = jwtProvider.generateRefreshToken(user);
 
@@ -44,13 +46,13 @@ public class AuthService {
             } else {
                 tokenRepo.save(new RefreshToken(user, refreshToken));
             }
-            return new JwtResponse(accessToken, refreshToken);
+            return new JwtResponseDto(accessToken, refreshToken);
         } else {
-            throw new UserAccountException("Incorrect password");
+            throw new AuthException("Incorrect password!");
         }
     }
 
-    public JwtResponse getAccessToken(@NonNull String refreshToken) {
+    public JwtResponseDto getAccessToken(@NonNull String refreshToken) {
         if (jwtProvider.validateRefreshToken(refreshToken)) {
             final Claims claims = jwtProvider.getRefreshClaims(refreshToken);
             final String login = claims.getSubject();
@@ -61,13 +63,13 @@ public class AuthService {
 
             if (saveRefreshToken != null && saveRefreshToken.equals(refreshToken)) {
                 final String accessToken = jwtProvider.generateAccessToken(user);
-                return new JwtResponse(accessToken, null);
+                return new JwtResponseDto(accessToken, null);
             }
         }
-        return new JwtResponse(null, null);
+        return new JwtResponseDto(null, null);
     }
 
-    public JwtResponse refresh(@NonNull String refreshToken){
+    public JwtResponseDto refresh(@NonNull String refreshToken){
         if (jwtProvider.validateRefreshToken(refreshToken)) {
             final Claims claims = jwtProvider.getRefreshClaims(refreshToken);
             final String login = claims.getSubject();
@@ -82,10 +84,10 @@ public class AuthService {
 
                 saveRefreshToken.setToken(refreshToken);
                 userRepo.save(user);
-                return new JwtResponse(accessToken, newRefreshToken);
+                return new JwtResponseDto(accessToken, newRefreshToken);
             }
         }
-        return new JwtResponse(null, null);
+        return new JwtResponseDto(null, null);
     }
 
     public JwtAuthentication getAuthInfo() {

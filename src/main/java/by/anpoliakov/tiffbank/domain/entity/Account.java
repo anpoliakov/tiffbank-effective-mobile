@@ -28,4 +28,6 @@ public class Account {
         this.user = user;
         this.balance = balance;
     }
+
+
 }

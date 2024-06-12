@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class UserExceptionResponse {
-    private String message;
+public class UserExceptionDto {
+    private String error;
 }
