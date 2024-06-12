@@ -1,6 +1,7 @@
 # Банковский сервис
 Реализовано всё техническое задание ниже.  
 Доступ к Swagger по ссылке http://localhost:8080/swagger-ui/index.html
+Скрипт БД: resources -> scriptDb.sql (так же указать данные в application.properties)
 
 # Техническое задание.
 ## Функциональные требования
